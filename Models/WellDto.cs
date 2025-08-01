@@ -19,10 +19,12 @@ namespace DataSyncApp.Models
         [JsonPropertyName("longitude")]
         public double Longitude { get; set; }
 
-        [JsonPropertyName("createdAt")]
+        // Map the API's "lastUpdate" to CreatedAt
+        [JsonPropertyName("lastUpdate")]
         public DateTime CreatedAt { get; set; }
 
-        [JsonPropertyName("updatedAt")]
-        public DateTime UpdatedAt { get; set; }
+        // Use the same lastUpdate for UpdatedAt
+        [JsonIgnore]
+        public DateTime UpdatedAt => CreatedAt;
     }
 }

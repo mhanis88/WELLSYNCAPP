@@ -16,11 +16,13 @@ namespace DataSyncApp.Models
         [JsonPropertyName("longitude")]
         public double Longitude { get; set; }
 
-        [JsonPropertyName("createdAt")]
+        // Map the API's "lastUpdate" to CreatedAt (since CreatedAt is missing)
+        [JsonPropertyName("lastUpdate")]
         public DateTime CreatedAt { get; set; }
 
-        [JsonPropertyName("updatedAt")]
-        public DateTime UpdatedAt { get; set; }
+        // Use the same lastUpdate for UpdatedAt
+        [JsonIgnore]
+        public DateTime UpdatedAt => CreatedAt;
 
         [JsonPropertyName("well")]
         public List<WellDto> Well { get; set; } = new List<WellDto>();
