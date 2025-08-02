@@ -14,8 +14,6 @@ namespace DataSyncApp.Data
 
             try
             {
-                logger.LogInformation("Initializing database...");
-
                 // Ensure database is created
                 await context.Database.EnsureCreatedAsync();
 

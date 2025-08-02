@@ -28,8 +28,6 @@ namespace DataSyncApp.Services
 
             try
             {
-                _logger.LogInformation("Starting data synchronization process...");
-
                 // Step 1: Authenticate with API
                 if (!await _apiClient.LoginAsync())
                 {
@@ -43,12 +41,11 @@ namespace DataSyncApp.Services
                 List<PlatformDto>? platformData;
                 if (useDummyData)
                 {
-                    _logger.LogInformation("Fetching dummy data for testing...");
                     platformData = await _apiClient.GetPlatformWellDummyAsync();
                 }
                 else
-                {
-                    _logger.LogInformation("Fetching actual platform/well data...");
+                {   
+                    // get actual data
                     platformData = await _apiClient.GetPlatformWellActualAsync();
                 }
 
@@ -59,9 +56,6 @@ namespace DataSyncApp.Services
                     _logger.LogWarning("Sync completed with warning: {Warning}", result.ErrorMessage);
                     return result;
                 }
-
-                _logger.LogInformation("Received {PlatformCount} platforms with {WellCount} wells from API", 
-                    platformData.Count, platformData.Sum(p => p.Well?.Count ?? 0));
 
                 // Step 3: Begin database transaction
                 using var transaction = await _dbContext.Database.BeginTransactionAsync();
@@ -83,13 +77,6 @@ namespace DataSyncApp.Services
 
                     var endTime = DateTime.UtcNow;
                     result.Duration = endTime - startTime;
-
-                    _logger.LogInformation("Sync completed successfully in {Duration:mm\\:ss}. " +
-                        "Platforms: {PlatformInserted} inserted, {PlatformUpdated} updated. " +
-                        "Wells: {WellInserted} inserted, {WellUpdated} updated.",
-                        result.Duration,
-                        result.PlatformsInserted, result.PlatformsUpdated,
-                        result.WellsInserted, result.WellsUpdated);
                 }
                 catch (Exception)
                 {
@@ -114,8 +101,6 @@ namespace DataSyncApp.Services
         {
             var result = new SyncEntityResult();
             
-            _logger.LogInformation("Synchronizing {Count} platforms...", platformDtos.Count);
-
             // Get existing platforms from database
             var existingPlatforms = await _dbContext.Platforms
                 .ToDictionaryAsync(p => p.Id, p => p);
@@ -131,7 +116,7 @@ namespace DataSyncApp.Services
                         if (hasChanges)
                         {
                             result.Updated++;
-                            _logger.LogDebug("Updated platform ID {Id}: {Name}", dto.Id, dto.UniqueName);
+                            // _logger.LogDebug("Updated platform ID {Id}: {Name}", dto.Id, dto.UniqueName);
                         }
                     }
                     else
@@ -140,7 +125,7 @@ namespace DataSyncApp.Services
                         var newPlatform = CreatePlatformFromDto(dto);
                         _dbContext.Platforms.Add(newPlatform);
                         result.Inserted++;
-                        _logger.LogDebug("Inserted new platform ID {Id}: {Name}", dto.Id, dto.UniqueName);
+                        // _logger.LogDebug("Inserted new platform ID {Id}: {Name}", dto.Id, dto.UniqueName);
                     }
                 }
                 catch (Exception ex)
@@ -152,10 +137,6 @@ namespace DataSyncApp.Services
 
             // Save platform changes
             await _dbContext.SaveChangesAsync();
-            
-            _logger.LogInformation("Platform sync completed: {Inserted} inserted, {Updated} updated, {Errors} errors",
-                result.Inserted, result.Updated, result.Errors);
-
             return result;
         }
 
@@ -171,8 +152,6 @@ namespace DataSyncApp.Services
                 .Where(p => p.Well != null)
                 .SelectMany(p => p.Well)
                 .ToList();
-
-            _logger.LogInformation("Synchronizing {Count} wells...", allWells.Count);
 
             if (!allWells.Any())
             {
@@ -195,7 +174,7 @@ namespace DataSyncApp.Services
                         if (hasChanges)
                         {
                             result.Updated++;
-                            _logger.LogDebug("Updated well ID {Id}: {Name}", dto.Id, dto.UniqueName);
+                            // _logger.LogDebug("Updated well ID {Id}: {Name}", dto.Id, dto.UniqueName);
                         }
                     }
                     else
@@ -204,7 +183,7 @@ namespace DataSyncApp.Services
                         var newWell = CreateWellFromDto(dto);
                         _dbContext.Wells.Add(newWell);
                         result.Inserted++;
-                        _logger.LogDebug("Inserted new well ID {Id}: {Name}", dto.Id, dto.UniqueName);
+                        // _logger.LogDebug("Inserted new well ID {Id}: {Name}", dto.Id, dto.UniqueName);
                     }
                 }
                 catch (Exception ex)
@@ -216,10 +195,6 @@ namespace DataSyncApp.Services
 
             // Save well changes
             await _dbContext.SaveChangesAsync();
-            
-            _logger.LogInformation("Well sync completed: {Inserted} inserted, {Updated} updated, {Errors} errors",
-                result.Inserted, result.Updated, result.Errors);
-
             return result;
         }
 

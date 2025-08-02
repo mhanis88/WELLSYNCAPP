@@ -40,8 +40,6 @@ namespace DataSyncApp.Services
         {
             try
             {
-                _logger.LogInformation("Attempting to login to API...");
-
                 var loginRequest = new LoginRequest
                 {
                     Username = _configuration["ApiSettings:Username"] ?? "",
@@ -56,7 +54,7 @@ namespace DataSyncApp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogDebug("Login response: {Response}", responseContent);
+                    // _logger.LogDebug("Login response: {Response}", responseContent);
 
                     // Handle simple string token response (API returns just the token as a JSON string)
                     try
@@ -70,8 +68,6 @@ namespace DataSyncApp.Services
                             _bearerToken = token;
                             _tokenExpiry = DateTime.UtcNow.AddHours(1); // Default 1 hour expiry
                             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
-                            
-                            _logger.LogInformation("Login successful. Token acquired");
                             return true;
                         }
                     }
@@ -152,15 +148,13 @@ namespace DataSyncApp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogDebug("{DataType} data response length: {Length} characters", dataType, responseContent.Length);
+                    // _logger.LogDebug("{DataType} data response length: {Length} characters", dataType, responseContent.Length);
 
                     // Try different response formats
                     var platforms = await ParsePlatformDataAsync(responseContent, dataType);
                     
                     if (platforms != null)
                     {
-                        _logger.LogInformation("Successfully fetched {PlatformCount} platforms with {WellCount} wells from {DataType} endpoint", 
-                            platforms.Count, platforms.Sum(p => p.Well?.Count ?? 0), dataType);
                         return platforms;
                     }
                 }
@@ -196,7 +190,6 @@ namespace DataSyncApp.Services
                 var platforms = JsonSerializer.Deserialize<List<PlatformDto>>(responseContent, jsonOptions);
                 if (platforms != null && platforms.Count > 0)
                 {
-                    _logger.LogDebug("Parsed {DataType} data as direct platform array", dataType);
                     return Task.FromResult<List<PlatformDto>?>(platforms);
                 }
             }
@@ -211,7 +204,6 @@ namespace DataSyncApp.Services
                 var apiResponse = JsonSerializer.Deserialize<PlatformWellResponse>(responseContent, jsonOptions);
                 if (apiResponse?.Data != null && apiResponse.Data.Count > 0)
                 {
-                    _logger.LogDebug("Parsed {DataType} data as wrapped API response", dataType);
                     return Task.FromResult<List<PlatformDto>?>(apiResponse.Data);
                 }
             }
@@ -229,7 +221,7 @@ namespace DataSyncApp.Services
                     var platforms = JsonSerializer.Deserialize<List<PlatformDto>>(dataElement.GetRawText(), jsonOptions);
                     if (platforms != null && platforms.Count > 0)
                     {
-                        _logger.LogDebug("Parsed {DataType} data from 'data' property", dataType);
+                        // _logger.LogDebug("Parsed {DataType} data from 'data' property", dataType);
                         return Task.FromResult<List<PlatformDto>?>(platforms);
                     }
                 }
@@ -263,7 +255,6 @@ namespace DataSyncApp.Services
         {
             try
             {
-                _logger.LogInformation("Testing API connectivity...");
                 var response = await _httpClient.GetAsync("/api/health");
                 
                 if (response.IsSuccessStatusCode)

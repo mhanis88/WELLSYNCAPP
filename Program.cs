@@ -38,18 +38,13 @@ namespace DataSyncApp
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 await dbContext.Database.EnsureCreatedAsync();
 
-                logger.LogInformation("Database connection verified.");
-
                 // Get database stats before sync
                 var statsBefore = await dbContext.GetDatabaseStatsAsync();
-                logger.LogInformation("Database before sync: {PlatformCount} platforms, {WellCount} wells", 
-                    statsBefore.PlatformCount, statsBefore.WellCount);
 
                 // Perform data synchronization
                 var syncService = scope.ServiceProvider.GetRequiredService<DataSyncService>();
                 
                 // Try with actual data first
-                logger.LogInformation("Starting data synchronization with actual API data...");
                 var syncResult = await syncService.SyncDataAsync(useDummyData: false);
                 
                 // If actual data fails, try with dummy data for testing flexible key handling
@@ -62,19 +57,8 @@ namespace DataSyncApp
                 // Display sync results
                 if (syncResult.Success)
                 {
-                    logger.LogInformation("Login successful. Token acquired.");
-                    logger.LogInformation("Fetching platform and well data...");
-                    logger.LogInformation("{PlatformTotal} platforms processed. {PlatformInserted} inserted, {PlatformUpdated} updated.",
-                        syncResult.TotalPlatforms, syncResult.PlatformsInserted, syncResult.PlatformsUpdated);
-                    logger.LogInformation("{WellTotal} wells processed. {WellInserted} inserted, {WellUpdated} updated.",
-                        syncResult.TotalWells, syncResult.WellsInserted, syncResult.WellsUpdated);
-                    logger.LogInformation("Sync completed successfully.");
-
                     // Get database stats after sync
                     var statsAfter = await syncService.GetDatabaseStatsAsync();
-                    logger.LogInformation("Database after sync: {PlatformCount} platforms, {WellCount} wells", 
-                        statsAfter.PlatformCount, statsAfter.WellCount);
-                    
                     if (statsAfter.LastSyncTime != default)
                     {
                         logger.LogInformation("Last sync time: {LastSync:yyyy-MM-dd HH:mm:ss} UTC", statsAfter.LastSyncTime);
