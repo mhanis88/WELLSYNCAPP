@@ -31,8 +31,6 @@ namespace DataSyncApp
 
             try
             {
-                logger.LogInformation("Starting WellSync Data Sync Application...");
-
                 // Ensure database is created
                 using var scope = serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -59,10 +57,6 @@ namespace DataSyncApp
                 {
                     // Get database stats after sync
                     var statsAfter = await syncService.GetDatabaseStatsAsync();
-                    if (statsAfter.LastSyncTime != default)
-                    {
-                        logger.LogInformation("Last sync time: {LastSync:yyyy-MM-dd HH:mm:ss} UTC", statsAfter.LastSyncTime);
-                    }
                 }
                 else
                 {

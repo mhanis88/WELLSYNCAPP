@@ -141,8 +141,6 @@ namespace DataSyncApp.Services
                     return null;
                 }
 
-                _logger.LogInformation("Fetching {DataType} platform and well data from {Endpoint}...", dataType, endpoint);
-
                 var response = await _httpClient.GetAsync(endpoint);
 
                 if (response.IsSuccessStatusCode)
