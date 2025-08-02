@@ -19,7 +19,11 @@ namespace DataSyncApp
 
             // Setup dependency injection
             var serviceProvider = new ServiceCollection()
-                .AddLogging(builder => builder.AddConsole())
+                .AddLogging(builder => 
+                {
+                    builder.AddConsole();
+                    builder.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
+                })
                 .AddDbContext<AppDbContext>(options =>
                     options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")))
                 .AddSingleton<IConfiguration>(configuration)
